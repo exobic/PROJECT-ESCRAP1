@@ -1,0 +1,169 @@
+import React, { useState, useEffect } from 'react';
+import Axios from 'axios';
+
+const AdminSignup = () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [mobileNumber, setMobileNumber] = useState('+91');
+    const [otp, setOtp] = useState('');
+    const [otpRequested, setOtpRequested] = useState(false);
+
+    const sendOtp = async () => {
+        try {
+            // Send OTP via SMS using Twilio API
+            await Axios.post(`${import.meta.env.VITE_REACT_APP_API_ENDPOINT}/send-otp`, {
+                mobileNumber,
+            });
+            
+            setOtpRequested(true);
+            alert("OTP sent successfully");
+        } catch (err) {
+            console.error("Error sending OTP:", err);
+            alert("Failed to send OTP");
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            // Verify OTP
+            await Axios.post(`${import.meta.env.VITE_REACT_APP_API_ENDPOINT}/auth/verify-otp`, {
+                otp,
+                mobileNumber
+            });
+
+            // Signup
+            await Axios.post(`${import.meta.env.VITE_REACT_APP_API_ENDPOINT}/auth/signup`, {
+                username,
+                password,
+                mobileNumber,
+                role: 'admin'
+            });
+            alert("Sign up success");
+            window.location.href = "/signin";
+        } catch (err) {
+            console.error("Error signing up:", err);
+            alert("Error occurred while signing up");
+        }
+    };
+
+    return (
+        <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+                <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                    Sign up as an Admin
+                </h2>
+            </div>
+
+            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                        <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
+                            Username
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                autoComplete="username"
+                                required
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label htmlFor="mobileNumber" className="block text-sm font-medium leading-6 text-gray-900">
+                            Mobile Number
+                        </label>
+                        <div className="mt-2 flex items-center">
+                            <input
+                                id="mobileNumber"
+                                name="mobileNumber"
+                                type="text"
+                                autoComplete="mobileNumber"
+                                required
+                                value={mobileNumber}
+                                onChange={(e) => setMobileNumber(e.target.value)}
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            />
+                        </div>
+                    </div>
+
+                    {!otpRequested && (
+                        <div>
+                            <button
+                                type="button"
+                                onClick={sendOtp}
+                                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                            >
+                                Request OTP
+                            </button>
+                        </div>
+                    )}
+
+                    {otpRequested && (
+                        <>
+                            <div>
+                                <label htmlFor="otp" className="block text-sm font-medium leading-6 text-gray-900">
+                                    OTP
+                                </label>
+                                <div className="mt-2">
+                                    <input
+                                        id="otp"
+                                        name="otp"
+                                        type="text"
+                                        autoComplete="otp"
+                                        required
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+                                    Password
+                                </label>
+                                <div className="mt-2">
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <button
+                                    type="submit"
+                                    className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                >
+                                    Sign up
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </form>
+
+                <p className="mt-10 text-center text-sm text-gray-500">
+                    Already have an account?{' '}
+                    <a href="/signin" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </div>
+    );
+};
+
+export default AdminSignup;
